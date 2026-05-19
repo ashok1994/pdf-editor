@@ -10,4 +10,5 @@ export interface Modification {
     scale?: number;
     bold?: boolean;
     fontSize?: number; // CSS px; defaults to 18
+    width?: number;    // CSS px width of text box; defaults to 150
 }

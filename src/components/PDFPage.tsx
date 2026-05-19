@@ -25,6 +25,9 @@ export const PDFPage: React.FC<PDFPageProps> = ({
 }) => {
     const pageRef = useRef<HTMLDivElement>(null);
     const [draggingId, setDraggingId] = React.useState<string | null>(null);
+    const [resizingId, setResizingId] = React.useState<string | null>(null);
+    const resizeStartX = React.useRef(0);
+    const resizeStartWidth = React.useRef(150);
 
     const handlePageClick = (e: React.MouseEvent) => {
         if (activeTool === 'select' || activeTool === 'signature') return;
@@ -64,13 +67,24 @@ export const PDFPage: React.FC<PDFPageProps> = ({
         setDraggingId(modId);
     };
 
+    const handleResizeStart = (e: React.MouseEvent, modId: string, currentWidth: number) => {
+        e.stopPropagation();
+        e.preventDefault();
+        setResizingId(modId);
+        resizeStartX.current = e.clientX;
+        resizeStartWidth.current = currentWidth;
+    };
+
     const handleMouseMove = (e: React.MouseEvent) => {
+        if (resizingId) {
+            const newWidth = Math.max(80, resizeStartWidth.current + (e.clientX - resizeStartX.current));
+            onUpdateModification(resizingId, { width: newWidth });
+            return;
+        }
+
         if (!draggingId || !pageRef.current) return;
 
         const rect = pageRef.current.getBoundingClientRect();
-
-        // Calculate relative coordinates (0-1)
-        // Clamp to 0-1 to keep inside page
         const x = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
         const y = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
@@ -79,6 +93,7 @@ export const PDFPage: React.FC<PDFPageProps> = ({
 
     const handleMouseUp = () => {
         setDraggingId(null);
+        setResizingId(null);
     };
 
     const pageMods = modifications.filter(m => m.page === pageNumber);
@@ -168,13 +183,22 @@ export const PDFPage: React.FC<PDFPageProps> = ({
                                 type="text"
                                 value={mod.content}
                                 onChange={(e) => onUpdateModification(mod.id, { content: e.target.value })}
-                                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${mod.fontSize ?? 18}px` }}
+                                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${mod.fontSize ?? 18}px`, width: `${mod.width ?? 150}px` }}
                                 className={clsx(
                                     "bg-transparent border border-transparent hover:border-blue-300 focus:border-blue-500 outline-none p-1 text-gray-800",
                                     mod.bold && "font-bold"
                                 )}
                                 autoFocus
                             />
+                            {/* Right-edge resize handle */}
+                            <div
+                                onMouseDown={(e) => handleResizeStart(e, mod.id, mod.width ?? 150)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="absolute top-0 h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-ew-resize"
+                                style={{ right: '-6px', width: '12px' }}
+                            >
+                                <div className="w-0.5 h-4 bg-blue-400 rounded-full" />
+                            </div>
                         </div>
                     ) : (
                         <div
