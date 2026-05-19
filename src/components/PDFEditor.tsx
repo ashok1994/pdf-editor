@@ -9,6 +9,7 @@ export const PDFEditor: React.FC = () => {
     const [file, setFile] = useState<File | null>(null);
     const [activeTool, setActiveTool] = useState<ToolType>('select');
     const [modifications, setModifications] = useState<Modification[]>([]);
+    const [displayWidth, setDisplayWidth] = useState<number>(800);
 
     const handleUpload = (uploadedFile: File) => {
         setFile(uploadedFile);
@@ -18,7 +19,7 @@ export const PDFEditor: React.FC = () => {
     const handleDownload = async () => {
         if (!file) return;
         try {
-            await savePDF(file, modifications);
+            await savePDF(file, modifications, displayWidth);
         } catch (error) {
             console.error("Failed to save PDF", error);
             alert("Failed to save PDF. See console for details.");
@@ -66,6 +67,7 @@ export const PDFEditor: React.FC = () => {
                             onAddModification={addModification}
                             onUpdateModification={updateModification}
                             onDeleteModification={deleteModification}
+                            onDisplayWidthChange={setDisplayWidth}
                         />
 
                         <EditorToolbar

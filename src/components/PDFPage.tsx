@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { Page } from 'react-pdf';
 import type { ToolType, Modification } from '../types';
 import { X, GripVertical } from 'lucide-react';
+import { clsx } from 'clsx';
 
 interface PDFPageProps {
     pageNumber: number;
@@ -123,13 +124,58 @@ export const PDFPage: React.FC<PDFPageProps> = ({
                     )}
 
                     {mod.type === 'text' ? (
-                        <input
-                            type="text"
-                            value={mod.content}
-                            onChange={(e) => onUpdateModification(mod.id, { content: e.target.value })}
-                            className="bg-transparent border border-transparent hover:border-blue-300 focus:border-blue-500 outline-none p-1 text-lg font-sans text-gray-800"
-                            autoFocus
-                        />
+                        <div className="relative">
+                            {/* Controls float above the input — out of normal flow so they don't shift text position */}
+                            <div className="absolute bottom-full left-0 mb-1 flex items-center gap-1">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUpdateModification(mod.id, { bold: !mod.bold });
+                                    }}
+                                    className={clsx(
+                                        "text-xs px-1.5 py-0.5 rounded font-bold border transition-colors",
+                                        mod.bold
+                                            ? "bg-blue-600 text-white border-blue-600"
+                                            : "bg-white text-gray-600 border-gray-300 hover:border-blue-400"
+                                    )}
+                                >
+                                    B
+                                </button>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUpdateModification(mod.id, { fontSize: Math.max(8, (mod.fontSize ?? 18) - 2) });
+                                    }}
+                                    className="text-xs px-1.5 py-0.5 rounded border bg-white text-gray-600 border-gray-300 hover:border-blue-400 transition-colors font-bold"
+                                >
+                                    −
+                                </button>
+                                <span className="text-xs text-gray-500 w-6 text-center select-none">
+                                    {mod.fontSize ?? 18}
+                                </span>
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onUpdateModification(mod.id, { fontSize: Math.min(72, (mod.fontSize ?? 18) + 2) });
+                                    }}
+                                    className="text-xs px-1.5 py-0.5 rounded border bg-white text-gray-600 border-gray-300 hover:border-blue-400 transition-colors font-bold"
+                                >
+                                    +
+                                </button>
+                            </div>
+                            {/* Input is the only in-flow child — outer translate(-50%) correctly centers it at mod.y */}
+                            <input
+                                type="text"
+                                value={mod.content}
+                                onChange={(e) => onUpdateModification(mod.id, { content: e.target.value })}
+                                style={{ fontFamily: 'Helvetica, Arial, sans-serif', fontSize: `${mod.fontSize ?? 18}px` }}
+                                className={clsx(
+                                    "bg-transparent border border-transparent hover:border-blue-300 focus:border-blue-500 outline-none p-1 text-gray-800",
+                                    mod.bold && "font-bold"
+                                )}
+                                autoFocus
+                            />
+                        </div>
                     ) : (
                         <div
                             className="relative border border-transparent hover:border-blue-300 cursor-move"

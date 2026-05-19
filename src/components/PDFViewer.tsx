@@ -15,6 +15,7 @@ interface PDFViewerProps {
     onAddModification: (mod: Modification) => void;
     onUpdateModification: (id: string, updates: Partial<Modification>) => void;
     onDeleteModification: (id: string) => void;
+    onDisplayWidthChange?: (width: number) => void;
 }
 
 export const PDFViewer: React.FC<PDFViewerProps> = ({
@@ -23,7 +24,8 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
     modifications,
     onAddModification,
     onUpdateModification,
-    onDeleteModification
+    onDeleteModification,
+    onDisplayWidthChange,
 }) => {
     const [numPages, setNumPages] = useState<number>(0);
     const containerRef = React.useRef<HTMLDivElement>(null);
@@ -34,7 +36,9 @@ export const PDFViewer: React.FC<PDFViewerProps> = ({
 
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
-                setContainerWidth(entry.contentRect.width);
+                const w = entry.contentRect.width;
+                setContainerWidth(w);
+                onDisplayWidthChange?.(Math.min(w, 1200));
             }
         });
 

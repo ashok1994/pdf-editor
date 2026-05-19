@@ -1,12 +1,13 @@
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import type { Modification } from '../types';
 
-export const savePDF = async (file: File, modifications: Modification[]) => {
+export const savePDF = async (file: File, modifications: Modification[], displayWidth = 800) => {
     const existingPdfBytes = await file.arrayBuffer();
     const pdfDoc = await PDFDocument.load(existingPdfBytes);
 
     const pages = pdfDoc.getPages();
-    const helveticaFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaFont     = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const helveticaBoldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
     for (const mod of modifications) {
         const pageIndex = mod.page - 1;
@@ -21,15 +22,17 @@ export const savePDF = async (file: File, modifications: Modification[]) => {
             // PDF: x, y is bottom-left of the text baseline
             // Approx: y_pdf = height - y_dom - fontSize
 
-            const fontSize = 18; // Matching the UI
+            const displayFontSize = mod.fontSize ?? 18;
+            const scale = displayWidth / page.getWidth();
+            const fontSize = displayFontSize / scale;
             const x = mod.x * page.getWidth();
             const y = mod.y * page.getHeight();
 
             page.drawText(mod.content, {
                 x: x,
-                y: height - y - (fontSize * 0.75), // Adjust for baseline roughly
+                y: height - y - (fontSize * 0.25),
                 size: fontSize,
-                font: helveticaFont,
+                font: mod.bold ? helveticaBoldFont : helveticaFont,
                 color: rgb(0, 0, 0),
             });
         } else if (mod.type === 'signature') {
@@ -47,7 +50,7 @@ export const savePDF = async (file: File, modifications: Modification[]) => {
 
                 page.drawImage(pngImage, {
                     x: x,
-                    y: height - y - imgHeight,
+                    y: height - y - imgHeight / 2,
                     width,
                     height: imgHeight,
                 });

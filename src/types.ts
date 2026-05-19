@@ -8,4 +8,6 @@ export interface Modification {
     y: number; // Relative coordinates (0-1)
     content: string; // Text content or Image Data URL
     scale?: number;
+    bold?: boolean;
+    fontSize?: number; // CSS px; defaults to 18
 }
