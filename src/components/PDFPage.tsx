@@ -141,7 +141,7 @@ export const PDFPage: React.FC<PDFPageProps> = ({
                     {mod.type === 'text' ? (
                         <div className="relative">
                             {/* Controls float above the input — out of normal flow so they don't shift text position */}
-                            <div className="absolute bottom-full left-0 mb-1 flex items-center gap-1">
+                            <div className="absolute bottom-full left-0 mb-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button
                                     onClick={(e) => {
                                         e.stopPropagation();
